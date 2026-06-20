@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# generated output, not source
+results/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
