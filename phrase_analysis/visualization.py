@@ -37,12 +37,14 @@ def _short(author: str) -> str:
     return author.split("_")[0]
 
 
-def plot_uniqueness(uniqueness_df: pd.DataFrame, phrase_types: list[str], output_path: Path) -> None:
+def plot_uniqueness(
+    uniqueness_df: pd.DataFrame, phrase_types: list[str], output_path: Path
+) -> None:
     fig, axes = plt.subplots(1, len(phrase_types), figsize=(5 * len(phrase_types), 4))
     if len(phrase_types) == 1:
         axes = [axes]
 
-    for ax, phrase_type in zip(axes, phrase_types):
+    for ax, phrase_type in zip(axes, phrase_types, strict=True):
         data = uniqueness_df[uniqueness_df["type"] == phrase_type]
         x = np.arange(len(data))
         width = 0.35
@@ -73,7 +75,7 @@ def plot_top_phrases(
     if len(authors) == 1:
         axes = [axes]
 
-    for ax, author in zip(axes, authors):
+    for ax, author in zip(axes, authors, strict=True):
         top = (
             freq_df[(freq_df["type"] == phrase_type) & (freq_df["author"] == author)]
             .nlargest(top_n, "count")
@@ -100,7 +102,9 @@ def plot_top_phrases(
     plt.close(fig)
 
 
-def plot_pca(agg_df: pd.DataFrame, pca, authors: list[str], output_path: Path, reporter: Reporter) -> None:
+def plot_pca(
+    agg_df: pd.DataFrame, pca, authors: list[str], output_path: Path, reporter: Reporter
+) -> None:
     plt.figure(figsize=(10, 7))
     colors = sns.color_palette("Set2", len(authors))
 
@@ -167,7 +171,11 @@ def plot_similarity_heatmap(agg_df: pd.DataFrame, output_path: Path) -> None:
 def plot_frequency_distribution(
     freq_df: pd.DataFrame, authors: list[str], phrase_types: list[str], output_path: Path
 ) -> None:
-    fig, axes = plt.subplots(len(authors), len(phrase_types), figsize=(5 * len(phrase_types), 5 * len(authors)))
+    fig, axes = plt.subplots(
+        len(authors),
+        len(phrase_types),
+        figsize=(5 * len(phrase_types), 5 * len(authors)),
+    )
     if len(authors) == 1:
         axes = axes.reshape(1, -1)
 
@@ -189,12 +197,14 @@ def plot_frequency_distribution(
     plt.close(fig)
 
 
-def plot_average_frequencies(avg_freq_df: pd.DataFrame, phrase_types: list[str], output_path: Path) -> None:
+def plot_average_frequencies(
+    avg_freq_df: pd.DataFrame, phrase_types: list[str], output_path: Path
+) -> None:
     fig, axes = plt.subplots(1, len(phrase_types), figsize=(5 * len(phrase_types), 5))
     if len(phrase_types) == 1:
         axes = [axes]
 
-    for ax, phrase_type in zip(axes, phrase_types):
+    for ax, phrase_type in zip(axes, phrase_types, strict=True):
         data = avg_freq_df[avg_freq_df["type"] == phrase_type]
         x = np.arange(len(data))
         width = 0.25
@@ -214,7 +224,9 @@ def plot_average_frequencies(avg_freq_df: pd.DataFrame, phrase_types: list[str],
     plt.close(fig)
 
 
-def plot_jaccard(jaccard_df: pd.DataFrame, phrase_types: list[str], output_path: Path, reporter: Reporter) -> None:
+def plot_jaccard(
+    jaccard_df: pd.DataFrame, phrase_types: list[str], output_path: Path, reporter: Reporter
+) -> None:
     """Plot Jaccard index and unique/shared phrase counts for the first author pair.
 
     The underlying table now covers every author pair (see stats.build_jaccard_table);
@@ -242,8 +254,15 @@ def plot_jaccard(jaccard_df: pd.DataFrame, phrase_types: list[str], output_path:
     ax1.set_xticklabels([PHRASE_TYPE_LABELS[t] for t in phrase_types])
     ax1.set_ylim(0, 1)
     ax1.grid(axis="y", alpha=0.3)
-    for bar, value in zip(bars, pair_df["jaccard_index"]):
-        ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.02, f"{value:.3f}", ha="center", va="bottom", fontweight="bold")
+    for bar, value in zip(bars, pair_df["jaccard_index"], strict=True):
+        ax1.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{value:.3f}",
+            ha="center",
+            va="bottom",
+            fontweight="bold",
+        )
 
     x2 = np.arange(len(pair_df))
     width = 0.25

@@ -1,5 +1,10 @@
 **English** | [Українська](README.uk.md)
 
+[![CI](https://github.com/ZavarOvek/phrase-stylometry/actions/workflows/ci.yml/badge.svg)](https://github.com/ZavarOvek/phrase-stylometry/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 # Phrase Stylometry — Syntactic Phrase Analysis of Authorial Style
 
 A tool for stylometric comparison of authors based on syntactic phrases: it

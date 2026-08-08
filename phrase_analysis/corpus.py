@@ -28,7 +28,7 @@ class AuthorStats:
 
 def load_corpus(
     text_dir: Path,
-    nlp: "Language",
+    nlp: Language,
     stop_words: frozenset[str] | set[str],
     max_words_per_author: int,
     min_word_length: int,

@@ -13,7 +13,12 @@ from .stats import (
     build_jaccard_table,
     build_uniqueness_table,
 )
-from .vectorization import add_phrase_vectors, aggregate_author_vectors, project_pca, train_phrase_model
+from .vectorization import (
+    add_phrase_vectors,
+    aggregate_author_vectors,
+    project_pca,
+    train_phrase_model,
+)
 from .visualization import (
     configure_style,
     plot_average_frequencies,
@@ -59,11 +64,15 @@ def run(config: AnalysisConfig) -> None:
     freq_df = build_frequency_table(df)
     with pd.ExcelWriter(config.output_dir / "phrases_by_type.xlsx", engine="openpyxl") as writer:
         for phrase_type in PHRASE_TYPES:
-            freq_df[freq_df["type"] == phrase_type].to_excel(writer, sheet_name=phrase_type, index=False)
+            freq_df[freq_df["type"] == phrase_type].to_excel(
+                writer, sheet_name=phrase_type, index=False
+            )
 
     reporter.say("uniqueness_analysis")
     uniqueness_df = build_uniqueness_table(freq_df, authors, PHRASE_TYPES)
-    plot_uniqueness(uniqueness_df, list(PHRASE_TYPES), config.output_dir / "uniqueness_analysis.png")
+    plot_uniqueness(
+        uniqueness_df, list(PHRASE_TYPES), config.output_dir / "uniqueness_analysis.png"
+    )
 
     reporter.say("top_phrases", n=config.top_n_phrases)
     for phrase_type in PHRASE_TYPES:
@@ -91,17 +100,23 @@ def run(config: AnalysisConfig) -> None:
     plot_similarity_heatmap(agg_df, config.output_dir / "similarity_heatmap.png")
 
     reporter.say("freq_distribution")
-    plot_frequency_distribution(freq_df, authors, list(PHRASE_TYPES), config.output_dir / "frequency_distribution.png")
+    plot_frequency_distribution(
+        freq_df, authors, list(PHRASE_TYPES), config.output_dir / "frequency_distribution.png"
+    )
 
     reporter.say("extra_stats")
     avg_freq_df = build_average_frequency_table(freq_df, authors, PHRASE_TYPES)
-    plot_average_frequencies(avg_freq_df, list(PHRASE_TYPES), config.output_dir / "average_frequencies.png")
+    plot_average_frequencies(
+        avg_freq_df, list(PHRASE_TYPES), config.output_dir / "average_frequencies.png"
+    )
     avg_freq_df.to_excel(config.output_dir / "frequency_statistics.xlsx", index=False)
 
     reporter.say("jaccard")
     jaccard_df = build_jaccard_table(freq_df, authors, PHRASE_TYPES)
     if not jaccard_df.empty:
-        plot_jaccard(jaccard_df, list(PHRASE_TYPES), config.output_dir / "jaccard_analysis.png", reporter)
+        plot_jaccard(
+            jaccard_df, list(PHRASE_TYPES), config.output_dir / "jaccard_analysis.png", reporter
+        )
         jaccard_df.to_excel(config.output_dir / "jaccard_statistics.xlsx", index=False)
 
     reporter.say("done_header", output_dir=config.output_dir)

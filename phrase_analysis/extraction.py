@@ -19,7 +19,7 @@ PhraseDict = dict[str, list[str]]
 _VERB_OBJECT_DEPS = {"obj", "iobj", "obl", "nsubj", "nmod"}
 
 
-def extract_phrases(doc: "Doc") -> PhraseDict:
+def extract_phrases(doc: Doc) -> PhraseDict:
     """Walk the dependency tree and collect verbal, nominal, and adverbial phrases.
 
     Args:
@@ -34,9 +34,9 @@ def extract_phrases(doc: "Doc") -> PhraseDict:
     for token in doc:
         if token.pos_ == "VERB":
             for child in token.children:
-                if child.pos_ == "NOUN" and child.dep_ in _VERB_OBJECT_DEPS:
-                    phrases["verbal"].append(f"{token.lemma_} {child.lemma_}")
-                elif child.pos_ == "ADV" and child.dep_ == "advmod":
+                if (child.pos_ == "NOUN" and child.dep_ in _VERB_OBJECT_DEPS) or (
+                    child.pos_ == "ADV" and child.dep_ == "advmod"
+                ):
                     phrases["verbal"].append(f"{token.lemma_} {child.lemma_}")
             if token.head.pos_ == "NOUN":
                 phrases["verbal"].append(f"{token.lemma_} {token.head.lemma_}")
