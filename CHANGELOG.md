@@ -3,6 +3,18 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- Test suite (`pytest`) covering extraction, statistics, messages, config,
+  vectorization, corpus loading, and smoke-level plotting. The tests build
+  spaCy `Doc` objects from parallel lists, so they run offline and never
+  download `uk_core_news_lg`.
+- `requirements-dev.txt` and a `pytest.ini` (`pythonpath = .`, since the
+  project is run from its root rather than installed).
+- CI `test` job with a Python 3.10–3.12 matrix.
+- `Testing` section in both READMEs.
+
 ## [0.1.1] - 2026-08-08
 
 ### Added

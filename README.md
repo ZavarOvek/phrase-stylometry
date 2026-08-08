@@ -111,3 +111,16 @@ console during the run changes.
 - `Word2Vec` is trained on the phrase corpus itself (not on the full texts),
   which makes the vectors specific to a given run rather than transferable
   between projects — a deliberate simplicity trade-off, not a bug.
+
+## Testing
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+ruff check .
+```
+
+The suite runs offline and does **not** need `uk_core_news_lg`: it builds
+spaCy `Doc` objects directly from parallel word/lemma/POS/head/dep lists, which
+is all `extract_phrases` ever reads. Plots are checked at smoke level only —
+that a non-empty PNG gets written — using the matplotlib `Agg` backend.
