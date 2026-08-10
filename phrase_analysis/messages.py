@@ -30,8 +30,7 @@ CLEAN: dict[str, str] = {
     "summary_unique": "  Унікальних фраз: {unique}",
     "jaccard_summary_header": "  Індекс Жаккара (схожість словників за парами авторів):",
     "jaccard_line": (
-        "    {author_a} / {author_b} — {type_label}: "
-        "{jaccard:.3f} ({overlap:.1f}% перекриття)"
+        "    {author_a} / {author_b} — {type_label}: {jaccard:.3f} ({overlap:.1f}% перекриття)"
     ),
     "pca_title": "Векторні відстані між типами словосполучень",
     "top_phrases_title": "Топ-{n} {type_label} словосполучень",
@@ -58,8 +57,7 @@ GOTHIC: dict[str, str] = {
     "summary_unique": "  УНІКАЛЬНИХ ФРАЗ: {unique} (індивідуальних почерків)",
     "jaccard_summary_header": "  ІНДЕКСИ ЖАККАРА (родинність словників):",
     "jaccard_line": (
-        "    {author_a} / {author_b} — {type_label}: "
-        "{jaccard:.3f} ({overlap:.1f}% перекриття)"
+        "    {author_a} / {author_b} — {type_label}: {jaccard:.3f} ({overlap:.1f}% перекриття)"
     ),
     "pca_title": "ВЕКТОРНІ ВІДСТАНІ МІЖ ТИПАМИ СЛІВ",
     "top_phrases_title": "ТОП-{n} {type_label} ШЕПОТІВ",

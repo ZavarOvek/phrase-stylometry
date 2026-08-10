@@ -237,10 +237,15 @@ def plot_jaccard(
         return
 
     first_pair = jaccard_df[["author_a", "author_b"]].iloc[0]
-    pair_df = jaccard_df[
-        (jaccard_df["author_a"] == first_pair["author_a"])
-        & (jaccard_df["author_b"] == first_pair["author_b"])
-    ].set_index("type").reindex(phrase_types).reset_index()
+    pair_df = (
+        jaccard_df[
+            (jaccard_df["author_a"] == first_pair["author_a"])
+            & (jaccard_df["author_b"] == first_pair["author_b"])
+        ]
+        .set_index("type")
+        .reindex(phrase_types)
+        .reset_index()
+    )
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 

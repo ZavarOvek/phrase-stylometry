@@ -77,8 +77,12 @@ def run(config: AnalysisConfig) -> None:
     reporter.say("top_phrases", n=config.top_n_phrases)
     for phrase_type in PHRASE_TYPES:
         plot_top_phrases(
-            freq_df, authors, phrase_type, config.top_n_phrases,
-            config.output_dir / f"top{config.top_n_phrases}_{phrase_type}.png", reporter,
+            freq_df,
+            authors,
+            phrase_type,
+            config.top_n_phrases,
+            config.output_dir / f"top{config.top_n_phrases}_{phrase_type}.png",
+            reporter,
         )
 
     reporter.say("vectorizing")
@@ -121,10 +125,17 @@ def run(config: AnalysisConfig) -> None:
 
     reporter.say("done_header", output_dir=config.output_dir)
     for name in [
-        "statistics.xlsx", "phrases_by_type.xlsx", "uniqueness_analysis.png",
-        f"top{config.top_n_phrases}_*.png", "pca_analysis.png", "similarity_heatmap.png",
-        "frequency_distribution.png", "average_frequencies.png", "jaccard_analysis.png",
-        "frequency_statistics.xlsx", "jaccard_statistics.xlsx",
+        "statistics.xlsx",
+        "phrases_by_type.xlsx",
+        "uniqueness_analysis.png",
+        f"top{config.top_n_phrases}_*.png",
+        "pca_analysis.png",
+        "similarity_heatmap.png",
+        "frequency_distribution.png",
+        "average_frequencies.png",
+        "jaccard_analysis.png",
+        "frequency_statistics.xlsx",
+        "jaccard_statistics.xlsx",
     ]:
         print(f"  - {name}")
 
@@ -136,7 +147,9 @@ def run(config: AnalysisConfig) -> None:
         for _, row in jaccard_df.iterrows():
             reporter.say(
                 "jaccard_line",
-                author_a=row["author_a"], author_b=row["author_b"],
+                author_a=row["author_a"],
+                author_b=row["author_b"],
                 type_label=PHRASE_TYPE_LABELS[row["type"]],
-                jaccard=row["jaccard_index"], overlap=row["overlap_pct"],
+                jaccard=row["jaccard_index"],
+                overlap=row["overlap_pct"],
             )

@@ -75,9 +75,7 @@ def test_one_row_per_extracted_phrase(tmp_path, sentence, reporter, capsys):
         "читати книга",
         "читати швидко",
     ]
-    assert stats[ANDRUKHOVYCH] == AuthorStats(
-        words=6, verbal=3, nominal=2, adverbial=1, total=6
-    )
+    assert stats[ANDRUKHOVYCH] == AuthorStats(words=6, verbal=3, nominal=2, adverbial=1, total=6)
 
 
 def test_stop_words_and_min_length_are_applied(tmp_path, sentence, reporter, capsys):
