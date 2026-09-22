@@ -19,7 +19,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from .config import PHRASE_TYPE_LABELS
 from .messages import Reporter
 
-MARKERS = {"verbal": "o", "nominal": "s", "adverbial": "^"}
+MARKERS = {"verbal": "o", "nominal": "s", "adverbial": "^", "predicative": "D"}
 
 
 def configure_style() -> None:

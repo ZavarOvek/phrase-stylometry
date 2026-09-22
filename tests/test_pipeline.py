@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import pytest
 import spacy
+from openpyxl import load_workbook
 from spacy.tokens import Doc
 
 from phrase_analysis import pipeline
@@ -72,3 +73,6 @@ def test_full_run_writes_every_output(tmp_path, stub_spacy, capsys):
     written = {p.name for p in out.iterdir()}
     assert expected <= written
     assert any(name.startswith("top3_") for name in written)
+
+    sheets = load_workbook(out / "phrases_by_type.xlsx", read_only=True).sheetnames
+    assert sheets == ["verbal", "nominal", "adverbial", "predicative"]

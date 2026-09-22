@@ -71,11 +71,13 @@ def test_one_row_per_extracted_phrase(tmp_path, sentence, reporter, capsys):
     assert list(df.columns) == ["author", "type", "phrase"]
     assert set(df["author"]) == {ANDRUKHOVYCH}
     assert sorted(df.loc[df["type"] == "verbal", "phrase"]) == [
-        "читати воїн",
         "читати книга",
         "читати швидко",
     ]
-    assert stats[ANDRUKHOVYCH] == AuthorStats(words=6, verbal=3, nominal=2, adverbial=1, total=6)
+    assert list(df.loc[df["type"] == "predicative", "phrase"]) == ["воїн читати"]
+    assert stats[ANDRUKHOVYCH] == AuthorStats(
+        words=6, verbal=2, nominal=2, adverbial=1, predicative=1, total=6
+    )
 
 
 def test_stop_words_and_min_length_are_applied(tmp_path, sentence, reporter, capsys):
@@ -118,4 +120,6 @@ def test_empty_corpus_still_returns_the_expected_columns(tmp_path, vocab, report
 
     assert df.empty
     assert list(df.columns) == ["author", "type", "phrase"]
-    assert stats[ANDRUKHOVYCH] == AuthorStats(words=0, verbal=0, nominal=0, adverbial=0, total=0)
+    assert stats[ANDRUKHOVYCH] == AuthorStats(
+        words=0, verbal=0, nominal=0, adverbial=0, predicative=0, total=0
+    )

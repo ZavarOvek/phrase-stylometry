@@ -14,6 +14,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - `tests/test_pipeline.py`: an end-to-end run of `pipeline.run` with a
   stubbed spaCy model, checking that every output file is written.
+- A fourth phrase type, `predicative`: subject noun + verb predicate
+  (`nsubj`), written subject first (`воїн читати`). These pairs used to be
+  counted as `verbal`; in Ukrainian grammar subject + predicate is the
+  grammatical basis of a clause, not a word combination. Changes the
+  `verbal` counts, the Jaccard/uniqueness tables and every figure.
+  `AuthorStats` gains a `predicative` field.
 - Test suite (`pytest`) covering extraction, statistics, messages, config,
   vectorization, corpus loading, and smoke-level plotting. The tests build
   spaCy `Doc` objects from parallel lists, so they run offline and never

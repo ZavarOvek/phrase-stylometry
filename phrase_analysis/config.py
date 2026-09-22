@@ -9,11 +9,12 @@ DEFAULT_STOP_WORDS: frozenset[str] = frozenset(
     {"бути", "мати", "робити", "ставати", "говорити", "той", "цей", "такий", "який", "весь"}
 )
 
-PHRASE_TYPES: tuple[str, ...] = ("verbal", "nominal", "adverbial")
+PHRASE_TYPES: tuple[str, ...] = ("verbal", "nominal", "adverbial", "predicative")
 PHRASE_TYPE_LABELS: dict[str, str] = {
     "verbal": "Дієслівні",
     "nominal": "Іменні",
     "adverbial": "Прислівникові",
+    "predicative": "Предикативні",
 }
 
 

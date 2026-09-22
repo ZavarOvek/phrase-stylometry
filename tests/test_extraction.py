@@ -11,10 +11,10 @@ from spacy.tokens import Doc
 
 from phrase_analysis.extraction import _VERB_OBJECT_DEPS, extract_phrases, filter_phrases
 
-EMPTY: dict[str, list[str]] = {"verbal": [], "nominal": [], "adverbial": []}
+EMPTY: dict[str, list[str]] = {"verbal": [], "nominal": [], "adverbial": [], "predicative": []}
 
 
-def test_empty_doc_yields_three_empty_lists(vocab):
+def test_empty_doc_yields_four_empty_lists(vocab):
     """An empty document must return the full key set, not raise or return {}."""
     assert extract_phrases(Doc(vocab, words=[])) == EMPTY
 
@@ -29,9 +29,10 @@ def test_full_sentence_reference_case(make_doc):
         deps=["amod", "nsubj", "advmod", "ROOT", "amod", "obj"],
     )
     assert extract_phrases(doc) == {
-        "verbal": ["читати воїн", "читати швидко", "читати книга"],
+        "verbal": ["читати швидко", "читати книга"],
         "nominal": ["старий воїн", "давній книга"],
         "adverbial": ["швидко читати"],
+        "predicative": ["воїн читати"],
     }
 
 
@@ -63,7 +64,10 @@ def test_verb_ignores_noun_child_on_other_deps(make_doc, dep):
 
 
 def test_verb_takes_adverb_child_and_adverb_takes_its_head(make_doc):
-    """One adverb modifier feeds both the verbal and the adverbial bucket."""
+    """One adverb modifier feeds both the verbal and the adverbial bucket.
+
+    Deliberate: the link is a verbal combination and an adverbial one at once.
+    """
     doc = make_doc(
         words=["швидко", "читав"],
         lemmas=["швидко", "читати"],
@@ -75,6 +79,7 @@ def test_verb_takes_adverb_child_and_adverb_takes_its_head(make_doc):
         "verbal": ["читати швидко"],
         "nominal": [],
         "adverbial": ["швидко читати"],
+        "predicative": [],
     }
 
 
@@ -92,6 +97,25 @@ def test_verb_hanging_off_a_noun_is_recorded(make_doc):
         deps=["ROOT", "acl"],
     )
     assert extract_phrases(doc)["verbal"] == ["написати книга"]
+
+
+# --- predicative ------------------------------------------------------------
+
+
+def test_subject_goes_to_predicative_not_verbal(make_doc):
+    """Subject + predicate is a grammatical basis, not a word combination."""
+    doc = make_doc(
+        words=["Петро", "читає"],
+        lemmas=["петро", "читати"],
+        pos=["NOUN", "VERB"],
+        heads=[1, 1],
+        deps=["nsubj", "ROOT"],
+    )
+    assert extract_phrases(doc) == {**EMPTY, "predicative": ["петро читати"]}
+
+
+def test_subject_dep_is_not_an_object_dep():
+    assert "nsubj" not in _VERB_OBJECT_DEPS
 
 
 # --- nominal ----------------------------------------------------------------
@@ -186,7 +210,7 @@ def test_root_adverb_pairs_with_itself_and_is_dropped_by_the_filter(make_doc):
 
 
 def test_filter_keeps_every_key_even_when_all_phrases_are_dropped():
-    filtered = filter_phrases({"verbal": ["бути бути"], "nominal": [], "adverbial": []}, set())
+    filtered = filter_phrases({**EMPTY, "verbal": ["бути бути"]}, set())
     assert filtered == EMPTY
 
 

@@ -23,6 +23,7 @@ class AuthorStats:
     verbal: int
     nominal: int
     adverbial: int
+    predicative: int
     total: int
 
 
@@ -79,6 +80,7 @@ def load_corpus(
             verbal=len(phrases["verbal"]),
             nominal=len(phrases["nominal"]),
             adverbial=len(phrases["adverbial"]),
+            predicative=len(phrases["predicative"]),
             total=sum(len(items) for items in phrases.values()),
         )
 

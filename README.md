@@ -8,10 +8,24 @@
 # Phrase Stylometry — Syntactic Phrase Analysis of Authorial Style
 
 A tool for stylometric comparison of authors based on syntactic phrases: it
-takes several texts, extracts verbal, nominal and adverbial phrases (via
-`spaCy` dependency parsing), computes phrase frequencies and vocabulary
+takes several texts, extracts verbal, nominal, adverbial and predicative
+phrases (via `spaCy` dependency parsing), computes phrase frequencies and vocabulary
 uniqueness, builds `Word2Vec` vectors of phrases, projects them with `PCA`,
 and calculates cosine similarity and the Jaccard index between authors.
+
+## Phrase types
+
+| Type | Dependency pattern | Example |
+|---|---|---|
+| verbal | verb + object/oblique noun (`obj`, `iobj`, `obl`, `nmod`), verb + adverb (`advmod`) | `читати книга`, `читати швидко` |
+| nominal | adjective + noun, noun + noun | `давній книга`, `голос серце` |
+| adverbial | adverb + the verb/adjective/adverb it modifies | `швидко читати` |
+| predicative | subject noun + verb predicate (`nsubj`) | `воїн читати` |
+
+Subject + predicate has its own type because in Ukrainian grammar it is the
+grammatical basis of a clause, not a word combination; English-oriented phrase
+statistics usually count it with verb + object pairs. A verb–adverb link is
+counted as both verbal and adverbial, since it is both.
 
 ## Installation
 
@@ -64,7 +78,7 @@ python main.py --text-dir Samples --output-dir results --top-n 15
 The `results/` directory will contain:
 
 - `statistics.xlsx` — overall statistics per author
-- `phrases_by_type.xlsx` — phrase vocabularies by type (verbal/nominal/adverbial)
+- `phrases_by_type.xlsx` — phrase vocabularies by type (verbal/nominal/adverbial/predicative)
 - `uniqueness_analysis.png` — unique vs. shared phrases
 - `top{N}_*.png` — top-N phrases per author for each type
 - `pca_analysis.png` — 2D projection of Word2Vec phrase vectors
