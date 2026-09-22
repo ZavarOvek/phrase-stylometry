@@ -5,7 +5,15 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- `python main.py` crashed right after loading the corpus: `pipeline.run`
+  built the statistics table with `vars()` on `AuthorStats`, a
+  `slots=True` dataclass without `__dict__`. Now uses `dataclasses.asdict`.
+  Present since the initial commit; nothing ran `run` past `--help` before.
+
 ### Added
+- `tests/test_pipeline.py`: an end-to-end run of `pipeline.run` with a
+  stubbed spaCy model, checking that every output file is written.
 - Test suite (`pytest`) covering extraction, statistics, messages, config,
   vectorization, corpus loading, and smoke-level plotting. The tests build
   spaCy `Doc` objects from parallel lists, so they run offline and never

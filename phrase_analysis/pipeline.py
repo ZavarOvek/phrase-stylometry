@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
+
 import pandas as pd
 
 from .config import PHRASE_TYPE_LABELS, PHRASE_TYPES, AnalysisConfig
@@ -56,7 +58,8 @@ def run(config: AnalysisConfig) -> None:
     authors = sorted(author_stats.keys())
 
     reporter.say("stats_header")
-    stats_df = pd.DataFrame({a: vars(s) for a, s in author_stats.items()}).T
+    # asdict, not vars: AuthorStats uses slots=True and has no __dict__.
+    stats_df = pd.DataFrame({a: asdict(s) for a, s in author_stats.items()}).T
     print(stats_df)
     stats_df.to_excel(config.output_dir / "statistics.xlsx")
 
