@@ -30,6 +30,17 @@ _VERB_OBJECT_DEPS = {"obj", "iobj", "obl", "nmod"}
 _SUBJECT_DEPS = {"nsubj"}
 
 
+def _add_pair(items: list[str], first: str, second: str) -> None:
+    """Append ``"first second"`` unless a lemma is empty or contains whitespace.
+
+    A phrase is stored as one space-joined string and split back into its two
+    words later, so a lemma that is empty or has a space in it would make that
+    round trip ambiguous (the model leaves lemmas empty for some tokens).
+    """
+    if first.split() == [first] and second.split() == [second]:
+        items.append(f"{first} {second}")
+
+
 def extract_phrases(doc: Doc) -> PhraseDict:
     """Walk the dependency tree and collect verbal, nominal, and adverbial phrases.
 
@@ -47,26 +58,26 @@ def extract_phrases(doc: Doc) -> PhraseDict:
         if token.pos_ == "VERB":
             for child in token.children:
                 if child.pos_ == "NOUN" and child.dep_ in _SUBJECT_DEPS:
-                    phrases["predicative"].append(f"{child.lemma_} {token.lemma_}")
+                    _add_pair(phrases["predicative"], child.lemma_, token.lemma_)
                 elif (child.pos_ == "NOUN" and child.dep_ in _VERB_OBJECT_DEPS) or (
                     child.pos_ == "ADV" and child.dep_ == "advmod"
                 ):
-                    phrases["verbal"].append(f"{token.lemma_} {child.lemma_}")
+                    _add_pair(phrases["verbal"], token.lemma_, child.lemma_)
             if token.head.pos_ == "NOUN":
-                phrases["verbal"].append(f"{token.lemma_} {token.head.lemma_}")
+                _add_pair(phrases["verbal"], token.lemma_, token.head.lemma_)
 
         elif token.pos_ == "NOUN":
             for child in token.children:
                 if child.pos_ == "ADJ":
-                    phrases["nominal"].append(f"{child.lemma_} {token.lemma_}")
+                    _add_pair(phrases["nominal"], child.lemma_, token.lemma_)
                 elif child.pos_ == "NOUN":
-                    phrases["nominal"].append(f"{token.lemma_} {child.lemma_}")
+                    _add_pair(phrases["nominal"], token.lemma_, child.lemma_)
             if token.head.pos_ == "ADJ":
-                phrases["nominal"].append(f"{token.head.lemma_} {token.lemma_}")
+                _add_pair(phrases["nominal"], token.head.lemma_, token.lemma_)
 
         elif token.pos_ == "ADV":
             if token.head.pos_ in {"VERB", "ADJ", "ADV"}:
-                phrases["adverbial"].append(f"{token.lemma_} {token.head.lemma_}")
+                _add_pair(phrases["adverbial"], token.lemma_, token.head.lemma_)
 
     return phrases
 
@@ -76,7 +87,7 @@ def filter_phrases(
     stop_words: frozenset[str] | set[str],
     min_word_length: int = 3,
 ) -> PhraseDict:
-    """Drop self-repeating, stop-word, and too-short phrases.
+    """Drop malformed, self-repeating, stop-word, and too-short phrases.
 
     Args:
         phrases: Output of :func:`extract_phrases`.
@@ -90,7 +101,10 @@ def filter_phrases(
 
     for phrase_type, items in phrases.items():
         for phrase in items:
-            word_a, word_b = phrase.split()
+            words = phrase.split()
+            if len(words) != 2:
+                continue
+            word_a, word_b = words
             if word_a == word_b:
                 continue
             if word_a in stop_words or word_b in stop_words:

@@ -10,6 +10,11 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   built the statistics table with `vars()` on `AuthorStats`, a
   `slots=True` dataclass without `__dict__`. Now uses `dataclasses.asdict`.
   Present since the initial commit; nothing ran `run` past `--help` before.
+- A token with an empty lemma (or one containing whitespace) killed the whole
+  run: phrases are stored as `"<lemma> <lemma>"` and `filter_phrases` split
+  them back with `phrase.split()` into exactly two words, raising
+  `ValueError`. `extract_phrases` no longer builds such phrases, and
+  `filter_phrases` skips anything that doesn't split into two words.
 
 ### Added
 - `tests/test_pipeline.py`: an end-to-end run of `pipeline.run` with a

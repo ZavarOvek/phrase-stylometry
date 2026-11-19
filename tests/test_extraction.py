@@ -246,3 +246,42 @@ def test_filter_does_not_mutate_its_input():
     phrases = {"verbal": ["бути воїн"], "nominal": [], "adverbial": []}
     filter_phrases(phrases, stop_words=frozenset({"бути"}))
     assert phrases["verbal"] == ["бути воїн"]
+
+
+# --- empty / whitespace lemmas ----------------------------------------------
+
+
+@pytest.mark.parametrize("bad_lemma", ["", " ", "два слова", " читати"])
+def test_bad_lemma_never_becomes_a_phrase(make_doc, bad_lemma):
+    """An empty or whitespace-containing lemma is dropped at the source."""
+    doc = make_doc(
+        words=["Старий", "воїн", "швидко", "читав", "давню", "книгу"],
+        lemmas=["старий", "воїн", "швидко", bad_lemma, "давній", "книга"],
+        pos=["ADJ", "NOUN", "ADV", "VERB", "ADJ", "NOUN"],
+        heads=[1, 3, 3, 3, 5, 3],
+        deps=["amod", "nsubj", "advmod", "ROOT", "amod", "obj"],
+    )
+    assert extract_phrases(doc) == {
+        "verbal": [],
+        "nominal": ["старий воїн", "давній книга"],
+        "adverbial": [],
+        "predicative": [],
+    }
+
+
+def test_bad_lemma_does_not_crash_the_whole_pipeline_step(make_doc):
+    doc = make_doc(
+        words=["Старий", "воїн"],
+        lemmas=["", "воїн"],
+        pos=["ADJ", "NOUN"],
+        heads=[1, 1],
+        deps=["amod", "ROOT"],
+    )
+    assert filter_phrases(extract_phrases(doc), set()) == EMPTY
+
+
+@pytest.mark.parametrize("phrase", ["", "одне", "три окремі слова", " ", "читати  "])
+def test_filter_skips_phrases_that_do_not_split_into_two_words(phrase):
+    """Defensive: a malformed phrase is skipped instead of raising ValueError."""
+    result = filter_phrases({**EMPTY, "verbal": [phrase, "читати книга"]}, set())
+    assert result["verbal"] == ["читати книга"]
