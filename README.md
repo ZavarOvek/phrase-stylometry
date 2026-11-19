@@ -50,6 +50,10 @@ Samples/
 
 The file name (without the extension) is used as the author identifier.
 
+Apostrophes inside words (`’`, `ʼ`, `‘`, `` ` ``, `´`, …) are normalized to the
+ASCII `'` before parsing, because that is the only form the Ukrainian
+lemmatizer's dictionary recognizes. Quotation marks around words are not touched.
+
 ## Running
 
 ```bash

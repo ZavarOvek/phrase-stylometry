@@ -17,6 +17,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   `filter_phrases` skips anything that doesn't split into two words.
 
 ### Added
+- Apostrophe normalization: `’`, `ʼ`, `‘`, `` ` ``, `´`, `′`, `ʹ`, `＇` between
+  two letters become ASCII `'` before the text reaches spaCy (stop words get
+  the same treatment). The pymorphy3 Ukrainian dictionary only knows the
+  ASCII form, so мʼясо / зʼїв used to be lemmatized wrongly (`мʼяса`, `зʼй`)
+  and counted apart from м'ясо / з'їв. Phrase counts for texts with typographic
+  apostrophes will change.
 - `tests/test_pipeline.py`: an end-to-end run of `pipeline.run` with a
   stubbed spaCy model, checking that every output file is written.
 - A fourth phrase type, `predicative`: subject noun + verb predicate

@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from spacy.tokens import Doc
 
-from phrase_analysis.corpus import AuthorStats, load_corpus
+from phrase_analysis.corpus import AuthorStats, load_corpus, normalize_apostrophes
 from phrase_analysis.messages import Reporter
 
 ANDRUKHOVYCH = "Андрухович_Рекреації"
@@ -123,3 +123,82 @@ def test_empty_corpus_still_returns_the_expected_columns(tmp_path, vocab, report
     assert stats[ANDRUKHOVYCH] == AuthorStats(
         words=0, verbal=0, nominal=0, adverbial=0, predicative=0, total=0
     )
+
+
+# --- apostrophes ------------------------------------------------------------
+
+VARIANT_APOSTROPHES = ["\u2019", "\u02bc", "\u2018", "`", "\u00b4", "\u2032", "\u02b9", "\uff07"]
+
+
+@pytest.mark.parametrize("mark", VARIANT_APOSTROPHES)
+def test_every_apostrophe_variant_becomes_ascii(mark):
+    assert normalize_apostrophes(f"м{mark}ясо з{mark}їв") == "м'ясо з'їв"
+
+
+def test_ascii_apostrophe_is_left_alone():
+    assert normalize_apostrophes("м'ясо") == "м'ясо"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "\u2018цитата\u2019",
+        "він сказав: \u2018так\u2019.",
+        "\u2019 \u02bc ` на самоті",
+        "слово\u2019 наступне",
+        "123\u201945",
+    ],
+)
+def test_marks_that_are_not_between_two_letters_are_untouched(text):
+    assert normalize_apostrophes(text) == text
+
+
+def test_apostrophe_variant_is_counted_with_its_ascii_twin(tmp_path, vocab, reporter, capsys):
+    """'м’ясо' and "м'ясо" must end up as one phrase, because the text reaches
+    the pipeline already normalized."""
+
+    def nlp(text: str):
+        words = text.split()
+        n = len(words)
+        return Doc(
+            vocab,
+            words=words,
+            lemmas=words,
+            pos=["ADJ", "NOUN"] * (n // 2),
+            heads=[i + 1 if i % 2 == 0 else i for i in range(n)],
+            deps=["amod", "ROOT"] * (n // 2),
+        )
+
+    write_samples(tmp_path, {ANDRUKHOVYCH: "свіже м\u2019ясо свіже м\u02bcясо свіже м'ясо"})
+
+    df, stats = load_corpus(tmp_path, nlp, set(), 100, 3, reporter)
+    capsys.readouterr()
+
+    assert list(df["phrase"]) == ["свіже м'ясо"] * 3
+    assert stats[ANDRUKHOVYCH].nominal == 3
+
+
+def test_text_reaches_nlp_normalized(tmp_path, sentence, reporter, capsys):
+    write_samples(tmp_path, {ANDRUKHOVYCH: "зʼїв \u2018м\u2019ясо\u2019"})
+    nlp = FakeNlp(sentence)
+
+    load_corpus(tmp_path, nlp, set(), 100, 3, reporter)
+    capsys.readouterr()
+
+    assert nlp.texts == ["з'їв \u2018м'ясо\u2019"]
+
+
+def test_stop_words_with_apostrophe_variants_are_normalized(tmp_path, make_doc, reporter, capsys):
+    doc = make_doc(
+        words=["Старий", "м\u2019ясо"],
+        lemmas=["старий", "м'ясо"],
+        pos=["ADJ", "NOUN"],
+        heads=[1, 1],
+        deps=["amod", "ROOT"],
+    )
+    write_samples(tmp_path, {ANDRUKHOVYCH: "текст"})
+
+    df, _ = load_corpus(tmp_path, FakeNlp(doc), {"м\u2019ясо"}, 100, 3, reporter)
+    capsys.readouterr()
+
+    assert df.empty

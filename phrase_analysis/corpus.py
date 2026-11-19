@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -13,6 +14,25 @@ from .messages import Reporter
 
 if TYPE_CHECKING:
     from spacy.language import Language
+
+# The apostrophe the Ukrainian pymorphy3 dictionary knows is ASCII U+0027; with
+# U+2019 / U+02BC the word is unknown to it and its lemma comes out wrong
+# (мʼясо -> "мʼяса"). Only a mark between two letters is rewritten, so
+# ‘quotes’ around a word are left alone.
+_LETTER = r"[^\W\d_]"
+_INTRA_WORD_APOSTROPHE = re.compile(
+    rf"(?<={_LETTER})[\u2019\u02bc\u2018`\u00b4\u2032\u02b9\uff07](?={_LETTER})"
+)
+
+
+def normalize_apostrophes(text: str) -> str:
+    """Replace look-alike apostrophes between two letters with ASCII ``'``.
+
+    Handles U+2019, U+02BC, U+2018, backtick, U+00B4, U+2032, U+02B9 and U+FF07.
+    Marks that are not surrounded by letters on both sides (quotation marks,
+    for instance) are kept as they are.
+    """
+    return _INTRA_WORD_APOSTROPHE.sub("'", text)
 
 
 @dataclass(slots=True)
@@ -40,7 +60,8 @@ def load_corpus(
     Args:
         text_dir: Directory with one ``<author>.txt`` file per author.
         nlp: A loaded spaCy pipeline with POS tagging and dependency parsing.
-        stop_words: Lemmas to exclude from extracted phrases.
+        stop_words: Lemmas to exclude from extracted phrases. Apostrophes in
+            them are normalized the same way as in the texts.
         max_words_per_author: Truncate each author's text to this many words.
         min_word_length: Minimum character length for either word in a phrase.
         reporter: Console narrator (clean or gothic vibe).
@@ -61,6 +82,7 @@ def load_corpus(
         raise FileNotFoundError(f"No .txt files found in {text_dir}")
 
     reporter.say("loading", text_dir=text_dir)
+    stop_words = frozenset(normalize_apostrophes(word) for word in stop_words)
 
     records: list[dict[str, str]] = []
     author_stats: dict[str, AuthorStats] = {}
@@ -70,7 +92,7 @@ def load_corpus(
         reporter.say("processing_author", author=author)
 
         words = file_path.read_text(encoding="utf-8").split()[:max_words_per_author]
-        text = " ".join(words)
+        text = normalize_apostrophes(" ".join(words))
         doc = nlp(text)
 
         phrases = filter_phrases(extract_phrases(doc), stop_words, min_word_length)
