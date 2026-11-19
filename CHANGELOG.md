@@ -17,6 +17,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   `filter_phrases` skips anything that doesn't split into two words.
 
 ### Added
+- `EmptyCorpusError` (a `ValueError`): when `.txt` files exist but yield no
+  phrases at all, the run stops right after loading with a message that lists
+  each author and the likely cause (empty file vs. nothing survived
+  extraction/filtering). `main.py` prints it to stderr and exits with code 1.
+  This used to reach gensim and fail with "you must first build vocabulary".
+  If only some authors have no phrases, a per-author warning is printed.
 - Apostrophe normalization: `’`, `ʼ`, `‘`, `` ` ``, `´`, `′`, `ʹ`, `＇` between
   two letters become ASCII `'` before the text reaches spaCy (stop words get
   the same treatment). The pymorphy3 Ukrainian dictionary only knows the

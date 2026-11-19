@@ -16,6 +16,7 @@ from spacy.tokens import Doc
 
 from phrase_analysis import pipeline
 from phrase_analysis.config import AnalysisConfig
+from phrase_analysis.corpus import EmptyCorpusError
 
 NOUNS = ["воїн", "книга", "ліс", "вітер", "голос", "море"]
 VERBS = ["читати", "бачити", "чути", "писати"]
@@ -76,3 +77,14 @@ def test_full_run_writes_every_output(tmp_path, stub_spacy, capsys):
 
     sheets = load_workbook(out / "phrases_by_type.xlsx", read_only=True).sheetnames
     assert sheets == ["verbal", "nominal", "adverbial", "predicative"]
+
+
+def test_run_raises_on_empty_corpus_before_gensim(tmp_path, monkeypatch, vocab, capsys):
+    samples = tmp_path / "Samples"
+    samples.mkdir()
+    (samples / "Автор.txt").write_text("", encoding="utf-8")
+    monkeypatch.setattr(spacy, "load", lambda _name: lambda _text: Doc(vocab, words=[]))
+
+    with pytest.raises(EmptyCorpusError, match="Автор: файл порожній"):
+        pipeline.run(AnalysisConfig(text_dir=samples, output_dir=tmp_path / "results"))
+    capsys.readouterr()

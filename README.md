@@ -54,6 +54,12 @@ Apostrophes inside words (`’`, `ʼ`, `‘`, `` ` ``, `´`, …) are normalized
 ASCII `'` before parsing, because that is the only form the Ukrainian
 lemmatizer's dictionary recognizes. Quotation marks around words are not touched.
 
+If no author yields a single phrase (empty files, or nothing survives
+extraction and filtering — wrong language, wrong spaCy model, too strict
+`--min-word-length`), the run stops with an error that lists every author and
+the likely cause, and exits with code 1. If only some authors are empty, the
+run continues and prints a warning for each of them.
+
 ## Running
 
 ```bash

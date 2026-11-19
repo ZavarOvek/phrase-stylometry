@@ -35,6 +35,10 @@ def normalize_apostrophes(text: str) -> str:
     return _INTRA_WORD_APOSTROPHE.sub("'", text)
 
 
+class EmptyCorpusError(ValueError):
+    """No author yielded a single phrase, so there is nothing to analyze."""
+
+
 @dataclass(slots=True)
 class AuthorStats:
     """Per-author corpus and extraction counts."""
@@ -113,3 +117,39 @@ def load_corpus(
     df = pd.DataFrame(records, columns=["author", "type", "phrase"])
     reporter.say("loaded", count=len(df), n_authors=len(author_stats))
     return df, author_stats
+
+
+def _empty_author_reason(stats: AuthorStats) -> str:
+    if stats.words == 0:
+        return "файл порожній (0 слів)"
+    return (
+        f"слів {stats.words}, але жодне словосполучення не пройшло відбір і фільтри: "
+        "перевірте мову тексту, модель spaCy, стоп-слова та --min-word-length"
+    )
+
+
+def ensure_corpus_not_empty(
+    df: pd.DataFrame, author_stats: dict[str, AuthorStats], reporter: Reporter
+) -> None:
+    """Fail clearly on an empty corpus; warn about single empty authors.
+
+    Args:
+        df: The phrase dataframe returned by :func:`load_corpus`.
+        author_stats: The per-author counts returned by :func:`load_corpus`.
+        reporter: Console narrator, used for the per-author warning.
+
+    Raises:
+        EmptyCorpusError: If no author has a single phrase. The message names
+            every author and the likely cause (empty file vs. nothing survived
+            extraction and filtering).
+    """
+    empty = [author for author, stats in author_stats.items() if stats.total == 0]
+    if df.empty:
+        lines = [f"  - {author}: {_empty_author_reason(author_stats[author])}" for author in empty]
+        raise EmptyCorpusError(
+            "Не знайдено жодного словосполучення в жодному з текстів:\n" + "\n".join(lines)
+        )
+    for author in empty:
+        reporter.say(
+            "empty_author", author=author, reason=_empty_author_reason(author_stats[author])
+        )

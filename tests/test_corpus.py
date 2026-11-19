@@ -9,7 +9,13 @@ from __future__ import annotations
 import pytest
 from spacy.tokens import Doc
 
-from phrase_analysis.corpus import AuthorStats, load_corpus, normalize_apostrophes
+from phrase_analysis.corpus import (
+    AuthorStats,
+    EmptyCorpusError,
+    ensure_corpus_not_empty,
+    load_corpus,
+    normalize_apostrophes,
+)
 from phrase_analysis.messages import Reporter
 
 ANDRUKHOVYCH = "Андрухович_Рекреації"
@@ -202,3 +208,71 @@ def test_stop_words_with_apostrophe_variants_are_normalized(tmp_path, make_doc, 
     capsys.readouterr()
 
     assert df.empty
+
+
+# --- empty corpus -----------------------------------------------------------
+
+
+def _load(tmp_path, nlp, texts, reporter, stop_words=frozenset()):
+    write_samples(tmp_path, texts)
+    return load_corpus(tmp_path, nlp, stop_words, 100, 3, reporter)
+
+
+def test_empty_file_is_reported_as_empty(tmp_path, vocab, reporter, capsys):
+    df, stats = _load(tmp_path, FakeNlp(Doc(vocab, words=[])), {ANDRUKHOVYCH: ""}, reporter)
+    capsys.readouterr()
+
+    with pytest.raises(EmptyCorpusError, match=rf"{ANDRUKHOVYCH}: файл порожній") as info:
+        ensure_corpus_not_empty(df, stats, reporter)
+    assert isinstance(info.value, ValueError)
+
+
+def test_all_filtered_author_gets_the_extraction_hint(tmp_path, sentence, reporter, capsys):
+    stop = {"старий", "давній", "швидко", "читати", "книга", "воїн"}
+    df, stats = _load(tmp_path, FakeNlp(sentence), {ZABUZHKO: "текст"}, reporter, stop)
+    capsys.readouterr()
+
+    with pytest.raises(EmptyCorpusError) as info:
+        ensure_corpus_not_empty(df, stats, reporter)
+    message = str(info.value)
+    assert f"{ZABUZHKO}: слів 1, але жодне словосполучення" in message
+    assert "стоп-слова" in message
+    assert "--min-word-length" in message
+    assert "порожній" not in message
+
+
+def test_error_lists_every_author_with_its_own_cause(tmp_path, vocab, reporter, capsys):
+    texts = {ANDRUKHOVYCH: "", ZABUZHKO: "текст"}
+    write_samples(tmp_path, texts)
+    docs = iter([Doc(vocab, words=[]), Doc(vocab, words=["текст"], pos=["NOUN"])])
+    df, stats = load_corpus(tmp_path, lambda _t: next(docs), set(), 100, 3, reporter)
+    capsys.readouterr()
+
+    with pytest.raises(EmptyCorpusError) as info:
+        ensure_corpus_not_empty(df, stats, reporter)
+    lines = str(info.value).splitlines()
+    assert any(ANDRUKHOVYCH in line and "порожній" in line for line in lines)
+    assert any(ZABUZHKO in line and "слів 1" in line for line in lines)
+
+
+def test_one_empty_author_only_warns(tmp_path, sentence, vocab, reporter, capsys):
+    write_samples(tmp_path, {ANDRUKHOVYCH: "", ZABUZHKO: "Старий воїн швидко читав давню книгу"})
+    docs = iter([Doc(vocab, words=[]), sentence])
+    df, stats = load_corpus(tmp_path, lambda _t: next(docs), set(), 100, 3, reporter)
+    capsys.readouterr()
+
+    ensure_corpus_not_empty(df, stats, reporter)  # must not raise
+
+    out = capsys.readouterr().out
+    assert f"Увага: для {ANDRUKHOVYCH} не знайдено словосполучень" in out
+    assert "файл порожній" in out
+    assert ZABUZHKO not in out
+
+
+def test_no_warning_when_every_author_has_phrases(tmp_path, sentence, reporter, capsys):
+    df, stats = _load(tmp_path, FakeNlp(sentence), {ANDRUKHOVYCH: "т", ZABUZHKO: "т"}, reporter)
+    capsys.readouterr()
+
+    ensure_corpus_not_empty(df, stats, reporter)
+
+    assert capsys.readouterr().out == ""

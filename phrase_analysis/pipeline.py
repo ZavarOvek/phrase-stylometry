@@ -7,7 +7,7 @@ from dataclasses import asdict
 import pandas as pd
 
 from .config import PHRASE_TYPE_LABELS, PHRASE_TYPES, AnalysisConfig
-from .corpus import load_corpus
+from .corpus import ensure_corpus_not_empty, load_corpus
 from .messages import Reporter
 from .stats import (
     build_average_frequency_table,
@@ -55,6 +55,7 @@ def run(config: AnalysisConfig) -> None:
         min_word_length=config.min_word_length,
         reporter=reporter,
     )
+    ensure_corpus_not_empty(df, author_stats, reporter)
     authors = sorted(author_stats.keys())
 
     reporter.say("stats_header")

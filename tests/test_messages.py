@@ -14,7 +14,7 @@ import pytest
 
 from phrase_analysis.messages import CLEAN, GOTHIC, Reporter
 
-EXPECTED_KEY_COUNT = 22
+EXPECTED_KEY_COUNT = 23
 
 # Every placeholder used by either style, with a value of a usable type
 # (`jaccard_line` applies `:.3f` / `:.1f` format specs).
@@ -28,6 +28,7 @@ SAMPLE_VALUES: dict[str, object] = {
     "n_authors": 2,
     "output_dir": "results",
     "overlap": 12.5,
+    "reason": "файл порожній",
     "text_dir": "Samples",
     "total": 512,
     "type_label": "Дієслівні",

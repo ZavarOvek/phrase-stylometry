@@ -10,9 +10,11 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from phrase_analysis.config import AnalysisConfig
+from phrase_analysis.corpus import EmptyCorpusError
 from phrase_analysis.pipeline import run
 
 
@@ -99,7 +101,11 @@ def main() -> None:
         word2vec_epochs=args.w2v_epochs,
         vibe=args.vibe,
     )
-    run(config)
+    try:
+        run(config)
+    except EmptyCorpusError as error:
+        print(f"Помилка: {error}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
